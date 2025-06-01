@@ -2,10 +2,14 @@
 (require 'request)
 (require 'json)
 
-(defvar gemini-script-dir (file-name-directory load-file-name))
+(defvar gemini-script-dir
+  (file-name-directory load-file-name))
 
 (defvar gemini-api-key-file
   (expand-file-name ".api-key.txt" gemini-script-dir))
+
+(when (not (file-exists-p gemini-api-key-file))
+  (error (format "File %s does not exist" gemini-api-key-file)))
 
 (defvar gemini-api-key
   (string-trim
@@ -16,11 +20,12 @@
 (defvar gemini-debug nil)
 (defvar gemini-modell "gemini-2.0-flash")
 (defvar gemini-chat-history nil)
+(defvar gemini-api-url
+  "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s")
 
 (defun gemini-send (prompt system-message callback)
   "Send PROMPT to Gemini API and call callback with the response text."
-  (let ((url (format "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s"
-                      gemini-modell gemini-api-key))
+  (let ((url (format gemini-api-url gemini-modell gemini-api-key))
         (payload (json-encode
                   `(("contents" . [ (("parts" . [ (("text" . ,prompt)) ]) ) ])
                     ("systemInstruction" .
@@ -43,9 +48,7 @@
               (lambda (&rest args &key error-thrown &allow-other-keys)
                 (message "Gemini API error: %S" error-thrown))))))
 
-(defun build-context ()
-  ; TODO
-  (buffer-string))
+(defun build-context () (buffer-string))
 
 (defun append-history (s)
   (push s gemini-chat-history))
