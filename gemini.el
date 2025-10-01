@@ -92,6 +92,7 @@
        (insert response)))))
 
 (defun gemini-interactive-send ()
+  "Send buffer content to Gemini AI."
   (interactive)
   (gemini-send-line
    (concat
@@ -99,6 +100,5 @@
     "Use the following context to answer the given question. "
     "Be brief and use lines shorter than 80 characters")))
 
-(map! :leader
-      :desc "Send current line to Gemini Assistant"
-      "g g" #'gemini-interactive-send)
+(provide 'gemini)
+;;; gemini.el ends here
