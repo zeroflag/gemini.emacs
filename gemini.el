@@ -23,6 +23,9 @@
 (defvar gemini-api-url
   "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s")
 
+(defun strip-response (s)
+  (replace-regexp-in-string "```\\w*" "" (string-trim s)))
+
 (defun gemini-send (prompt system-message callback)
   "Send PROMPT to Gemini API and call callback with the response text."
   (let ((url (format gemini-api-url gemini-modell gemini-api-key))
@@ -43,7 +46,7 @@
                          (content (alist-get 'content first))
                          (parts (alist-get 'parts content))
                          (text (alist-get 'text (aref parts 0))))
-                    (funcall callback (string-trim text)))))
+                    (funcall callback (strip-response text)))))
       :error (cl-function
               (lambda (&rest args &key error-thrown &allow-other-keys)
                 (message "Gemini API error: %S" error-thrown))))))
