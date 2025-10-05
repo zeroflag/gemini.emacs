@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t; -*-
 ;;; gemini.el --- Gemini chatbot
 ;;;
 ;;; Author: Attila Magyar
@@ -10,7 +11,6 @@
 ;;;
 ;;; Code:
 ;;;
-;; -*- lexical-binding: t; -*-
 (require 'request)
 (require 'json)
 
