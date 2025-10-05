@@ -118,6 +118,7 @@
 
 ;; Local Variables:
 ;; byte-compile-warnings: (not docstrings)
+;; flycheck-disabled-checkers: (emacs-lisp-checkdoc)
 ;; End:
 
 ;;; gemini.el ends here
