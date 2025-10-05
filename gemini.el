@@ -1,5 +1,4 @@
 ;;; gemini.el --- Gemini chatbot
-;;; -*- lexical-binding: t; -*-
 ;;;
 ;;; Author: Attila Magyar
 ;;; URL: http://github.com/zeroflag/gemini.emacs
@@ -10,6 +9,8 @@
 ;;; Gemini chatbot for Emacs
 ;;;
 ;;; Code:
+;;;
+;; -*- lexical-binding: t; -*-
 (require 'request)
 (require 'json)
 
