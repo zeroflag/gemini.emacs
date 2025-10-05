@@ -13,11 +13,11 @@
 (require 'request)
 (require 'json)
 
-(defvar gemini-script-dir
-  (file-name-directory load-file-name))
-
-(defvar gemini-api-key-file
-  (expand-file-name ".api-key.txt" gemini-script-dir))
+(defcustom gemini-api-key-file
+  (expand-file-name "~/.api-key.txt")
+  "Path to gemini API key file"
+  :type 'fiel
+  :group 'gemini)
 
 (when (not (file-exists-p gemini-api-key-file))
   (error (format "File %s does not exist" gemini-api-key-file)))
