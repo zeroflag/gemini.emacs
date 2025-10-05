@@ -20,7 +20,7 @@
   :type 'file
   :group 'gemini)
 
-(defcustom gemini-model "gemini-2.0-flash"
+(defcustom gemini-model "gemini-flash-latest"
   "The LLM model used by Gemini chatbot"
   :type 'string
   :group 'gemini)
