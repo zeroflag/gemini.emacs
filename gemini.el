@@ -15,9 +15,9 @@
 (require 'json)
 
 (defcustom gemini-api-key-file
-  (expand-file-name "~/.api-key.txt")
+  (expand-file-name "~/.gemini.emacs/.api-key.txt")
   "Path to gemini API key file"
-  :type 'fiel
+  :type 'file
   :group 'gemini)
 
 (when (not (file-exists-p gemini-api-key-file))
