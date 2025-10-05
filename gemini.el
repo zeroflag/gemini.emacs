@@ -1,4 +1,15 @@
-;; -*- lexical-binding: t; -*-
+;;; gemini.el --- Gemini chatbot
+;;; -*- lexical-binding: t; -*-
+;;;
+;;; Author: Attila Magyar
+;;; URL: http://github.com/zeroflag/gemini.emacs
+;;; Version: 0.12
+;;; Package-Requires: ((emacs "25.1"))
+
+;;; Commentary:
+;;; Gemini chatbot for Emacs
+;;;
+;;; Code:
 (require 'request)
 (require 'json)
 
@@ -23,11 +34,13 @@
 (defvar gemini-api-url
   "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s")
 
-(defun strip-response (s)
+(defun gemini-strip-response (s)
   (replace-regexp-in-string "```\\w*" "" (string-trim s)))
 
 (defun gemini-send (prompt system-message callback)
-  "Send PROMPT to Gemini API and call callback with the response text."
+  "Send the PROMPT and SYSTEM-MESSAGE to Gemini API.
+
+   Then call CALLBACK with the response text."
   (let ((url (format gemini-api-url gemini-modell gemini-api-key))
         (payload (json-encode
                   `(("contents" . [ (("parts" . [ (("text" . ,prompt)) ]) ) ])
@@ -46,47 +59,48 @@
                          (content (alist-get 'content first))
                          (parts (alist-get 'parts content))
                          (text (alist-get 'text (aref parts 0))))
-                    (funcall callback (strip-response text)))))
+                    (funcall callback (gemini-strip-response text)))))
       :error (cl-function
               (lambda (&rest args &key error-thrown &allow-other-keys)
                 (message "Gemini API error: %S" error-thrown))))))
 
-(defun build-context () (buffer-string))
+(defun gemini-build-context () (buffer-string))
 
-(defun append-history (s)
+(defun gemini-append-history (s)
   (push s gemini-chat-history))
 
-(defun add-history (question answer)
-  (append-history (format " - User: %s" question))
-  (append-history (format " - AI: %s" answer))
-  (append-history ""))
+(defun gemini-add-history (question answer)
+  (gemini-append-history (format " - User: %s" question))
+  (gemini-append-history (format " - AI: %s" answer))
+  (gemini-append-history ""))
 
-(defun build-history ()
+(defun gemini-build-history ()
   (string-join (reverse gemini-chat-history) "\n"))
 
-(defun build-prompt (context question)
+(defun gemini-build-prompt (context question)
   (format (concat "***CONTEXT***\n\n%s\n\n"
                   "***CHAT HISTORY***\n\n%s\n"
                   "QUESTION: %s")
-          context (build-history) question))
+          context (gemini-build-history) question))
 
-(defun read-question ()
+(defun gemini-read-question ()
   (string-trim (thing-at-point 'line t)))
 
 (defun gemini-forget ()
+  "Clear gemini chatbot history."
   (interactive)
   (setq gemini-chat-history nil))
 
 (defun gemini-send-line (system-message)
-  (let* ((question (read-question))
-         (prompt   (build-prompt (build-context) (thing-at-point 'line t))))
+  (let* ((question (gemini-read-question))
+         (prompt   (gemini-build-prompt (gemini-build-context) (thing-at-point 'line t))))
     (when gemini-debug
       (write-region prompt nil "/tmp/gemini.el.log"))
     (gemini-send
      prompt
      system-message
      (lambda (response)
-       (add-history question response)
+       (gemini-add-history question response)
        (move-end-of-line nil)
        (insert "\n")
        (insert response)))))
@@ -101,4 +115,9 @@
     "Be brief and use lines shorter than 80 characters")))
 
 (provide 'gemini)
+
+;; Local Variables:
+;; byte-compile-warnings: (not docstrings)
+;; End:
+
 ;;; gemini.el ends here
