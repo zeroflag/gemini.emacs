@@ -20,6 +20,11 @@
   :type 'file
   :group 'gemini)
 
+(defcustom gemini-model "gemini-2.0-flash"
+  "The LLM model used by Gemini chatbot"
+  :type 'string
+  :group 'gemini)
+
 (when (not (file-exists-p gemini-api-key-file))
   (error (format "File %s does not exist" gemini-api-key-file)))
 
@@ -30,10 +35,17 @@
      (buffer-string))))
 
 (defvar gemini-debug nil)
-(defvar gemini-modell "gemini-2.0-flash")
 (defvar gemini-chat-history nil)
-(defvar gemini-api-url
-  "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s")
+(defvar gemini-api-base-url
+  "https://generativelanguage.googleapis.com/v1beta")
+
+(defun gemini-gen-url ()
+  (let ((url (concat gemini-api-base-url "/models/%s:generateContent?key=%s")))
+    (format url gemini-model gemini-api-key)))
+
+(defun gemini-models-url ()
+  (let ((url (concat gemini-api-base-url "/models?key=%s")))
+    (format url gemini-api-key)))
 
 (defun gemini-strip-response (s)
   (replace-regexp-in-string "```\\w*" "" (string-trim s)))
@@ -42,13 +54,12 @@
   "Send the PROMPT and SYSTEM-MESSAGE to Gemini API.
 
    Then call CALLBACK with the response text."
-  (let ((url (format gemini-api-url gemini-modell gemini-api-key))
-        (payload (json-encode
+  (let ((payload (json-encode
                   `(("contents" . [ (("parts" . [ (("text" . ,prompt)) ]) ) ])
                     ("systemInstruction" .
                      (("parts" . [ (("text" . ,system-message)) ])))))))
     (request
-      url
+      (gemini-gen-url)
       :type "POST"
       :headers '(("Content-Type" . "application/json"))
       :data payload
@@ -64,6 +75,26 @@
       :error (cl-function
               (lambda (&rest args &key error-thrown &allow-other-keys)
                 (message "Gemini API error: %S" error-thrown))))))
+
+(defun gemini-model-name (item)
+  (string-remove-prefix "models/" (alist-get 'name item)))
+
+(defun gemini-show-models ()
+  "Fetch available gemini models"
+  (interactive)
+  (request
+    (gemini-models-url)
+      :type "GET"
+      :headers '(("Content-Type" . "application/json"))
+      :parser 'json-read
+      :success (cl-function
+                (lambda (&key data &allow-other-keys)
+                  (let* ((models (alist-get 'models data))
+                         (names  (mapconcat #'gemini-model-name models "\n")))
+                  (display-message-or-buffer names))))
+      :error (cl-function
+              (lambda (&rest args &key error-thrown &allow-other-keys)
+                (message "Gemini API error: %S" error-thrown)))))
 
 (defun gemini-build-context () (buffer-string))
 
