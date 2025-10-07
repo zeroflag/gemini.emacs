@@ -16,13 +16,18 @@
 
 (defcustom gemini-api-key-file
   (expand-file-name "~/.gemini.emacs/.api-key.txt")
-  "Path to gemini API key file"
+  "Path to Gemini API key file"
   :type 'file
   :group 'gemini)
 
 (defcustom gemini-model "gemini-flash-latest"
   "The LLM model used by Gemini chatbot"
   :type 'string
+  :group 'gemini)
+
+(defcustom gemini-log-file "/tmp/gemini.el.log"
+  "Log file path used by Gemini chatbot"
+  :type 'file
   :group 'gemini)
 
 (when (not (file-exists-p gemini-api-key-file))
@@ -127,7 +132,7 @@
   (let* ((question (gemini-read-question))
          (prompt   (gemini-build-prompt (gemini-build-context) (thing-at-point 'line t))))
     (when gemini-debug
-      (write-region prompt nil "/tmp/gemini.el.log"))
+      (write-region prompt nil gemini-log-file))
     (gemini-send
      prompt
      system-message
