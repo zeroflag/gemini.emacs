@@ -30,6 +30,14 @@
   :type 'file
   :group 'gemini)
 
+(defcustom gemini-default-system-message (concat
+                                          "You are a helpful assistant running inside Emacs. "
+                                          "Use the following context to answer the given question. "
+                                          "Be brief and use lines shorter than 80 characters")
+  "System instructions for Gemini chabot"
+  :type 'string
+  :group 'gemini)
+
 (when (not (file-exists-p gemini-api-key-file))
   (error (format "File %s does not exist" gemini-api-key-file)))
 
@@ -55,7 +63,7 @@
 (defun gemini-strip-response (s)
   (replace-regexp-in-string "```\\w*" "" (string-trim s)))
 
-(defun gemini-send (prompt system-message callback)
+(defun gemini-api-request (prompt system-message callback)
   "Send the PROMPT and SYSTEM-MESSAGE to Gemini API.
 
    Then call CALLBACK with the response text."
@@ -128,30 +136,28 @@
   (interactive)
   (setq gemini-chat-history nil))
 
-(defun gemini-send-line (system-message)
-  (let* ((question (gemini-read-question))
-         (prompt   (gemini-build-prompt (gemini-build-context) (thing-at-point 'line t))))
+(defun gemini-send-question (question &optional system-message)
+  "Ask the QUESTION from Gemini using the optional SYSTEM-MESSAGE"
+  (interactive)
+  (let* ((sys-msg (or system-message gemini-default-system-message))
+         (prompt (gemini-build-prompt (gemini-build-context) question)))
     (when gemini-debug
       (write-region prompt nil gemini-log-file))
-    (gemini-send
+    (gemini-api-request
      prompt
-     system-message
+     sys-msg
      (lambda (response)
        (gemini-add-history question response)
        (move-end-of-line nil)
        (insert "\n")
        (insert response)))))
 
-(defun gemini-interactive-send ()
+(defun gemini-send-line ()
   "Send buffer content to Gemini AI."
   (interactive)
-  (gemini-send-line
-   (concat
-    "You are a helpful assistant running inside Emacs. "
-    "Use the following context to answer the given question. "
-    "Be brief and use lines shorter than 80 characters")))
+  (gemini-send-question (gemini-read-question)))
 
-(provide 'gemini)
+; How to make system-message optional in qemini-send-question?
 
 ;; Local Variables:
 ;; byte-compile-warnings: (not docstrings)

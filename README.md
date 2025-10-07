@@ -17,11 +17,11 @@ echo "<YOUR-API-KEY>" > .api-key.txt
 
 ```lisp
 (use-package! gemini
-  :commands gemini-interactive-send
+  :commands gemini-send-line
   :defer t
   :init
   (setq gemini-api-key-file "~/path/to/.api-key.txt")
   (map! :leader
         :desc "Send buffer to Gemini Assistant"
-        "g g" #'gemini-interactive-send))
+        "g g" #'gemini-send-line))
 ```
