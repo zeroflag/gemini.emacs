@@ -157,8 +157,6 @@
   (interactive)
   (gemini-send-question (gemini-read-question)))
 
-; How to make system-message optional in qemini-send-question?
-
 ;; Local Variables:
 ;; byte-compile-warnings: (not docstrings)
 ;; flycheck-disabled-checkers: (emacs-lisp-checkdoc)
